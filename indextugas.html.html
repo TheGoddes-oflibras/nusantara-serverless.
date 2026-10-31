@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengaduan Fasilitas - PT Arunika Teknologi</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 0; padding: 25px 12px; color: #222; }
+    .container { max-width: 550px; margin: 30px auto; background: white; padding: 25px; border: 1px solid #ddd; border-radius: 6px; }
+    h2 { margin: 0 0 8px; }
+    p { color: #555; line-height: 1.5; }
+    label { display: block; margin: 17px 0 6px; font-weight: bold; }
+    input, textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #bbb; border-radius: 4px; font: inherit; }
+    textarea { min-height: 100px; resize: vertical; }
+    button { margin-top: 18px; background: #347a55; color: white; border: none; border-radius: 4px; padding: 11px 18px; cursor: pointer; }
+    button:disabled { opacity: .65; cursor: wait; }
+    #hasil { margin-top: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Pengaduan Fasilitas</h2>
+    <p>PT Arunika Teknologi</p>
+    <p>Silakan isi data laporan kerusakan fasilitas.</p>
+    <form id="formLaporan">
+      <label for="nama">Nama pelapor</label>
+      <input type="text" id="nama" maxlength="100" required>
+      <label for="lokasi">Lokasi / ruangan</label>
+      <input type="text" id="lokasi" maxlength="100" required>
+      <label for="masalah">Keterangan kerusakan</label>
+      <textarea id="masalah" maxlength="850" required></textarea>
+      <button type="submit" id="kirim">Kirim Laporan</button>
+    </form>
+    <div id="hasil" role="status" aria-live="polite"></div>
+  </div>
+  <script>
+    // Isi dengan URL API Gateway masing-masing peserta.
+    const API_URL = '';
+    const form = document.getElementById('formLaporan');
+    const hasil = document.getElementById('hasil');
+    const tombol = document.getElementById('kirim');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const nama = document.getElementById('nama').value.trim();
+      const lokasi = document.getElementById('lokasi').value.trim();
+      const keterangan = document.getElementById('masalah').value.trim();
+      if (!nama || !lokasi || !keterangan) {
+        hasil.textContent = 'Semua kolom wajib diisi.';
+        return;
+      }
+      if (!API_URL) {
+        hasil.textContent = 'Alamat API Gateway belum diisi pada file HTML.';
+        return;
+      }
+      tombol.disabled = true;
+      hasil.textContent = 'Mengirim laporan...';
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nama, masalah: 'Lokasi: ' + lokasi + '\nKerusakan: ' + keterangan })
+        });
+        const data = await res.json();
+        if (!res.ok || data.status !== 'DITERIMA') throw new Error(data.pesan || 'Pengiriman gagal.');
+        hasil.textContent = 'Laporan berhasil diterima. Nomor tiket: ' + data.tiket;
+        form.reset();
+      } catch (err) {
+        hasil.textContent = 'Laporan gagal dikirim: ' + err.message;
+      } finally {
+        tombol.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
