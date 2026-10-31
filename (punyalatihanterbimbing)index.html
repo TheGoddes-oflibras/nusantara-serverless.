@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nusantara Digital | Layanan IT</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#172b4d;background:#edf4fd}*{box-sizing:border-box}body{margin:0;padding:38px 18px}.wrap{max-width:740px;margin:auto}.eyebrow{font-weight:800;letter-spacing:.15em;color:#2171c1;font-size:12px}.heading{margin:8px 0;font-size:clamp(27px,5vw,40px);line-height:1.15}.sub{line-height:1.65;color:#60718a;margin:10px 0 25px}.card{background:#fff;border:1px solid #d9e5f2;border-radius:19px;box-shadow:0 12px 38px #15345a14;padding:28px}h2{margin:0 0 6px;font-size:21px}.hint{color:#6a7d94;font-size:14px;line-height:1.5;margin:0 0 24px}label{display:block;font-weight:650;margin-bottom:8px;font-size:14px}input,textarea{width:100%;border:1px solid #c5d4e6;padding:13px 14px;border-radius:10px;font:inherit;background:#fff;color:#142c45}input:focus,textarea:focus{outline:3px solid #b9ddff;border-color:#137ad4}.field{margin-bottom:19px}textarea{resize:vertical;min-height:125px}button{border:0;background:#176bd1;color:#fff;border-radius:10px;font-weight:700;padding:13px 18px;font:inherit;cursor:pointer;width:100%}button:disabled{opacity:.65;cursor:wait}.message{display:none;margin-top:20px;padding:16px 18px;border-radius:12px;line-height:1.65;overflow-wrap:anywhere}.success{display:block;background:#eaf9f0;color:#135b37;border:1px solid #afe4c6}.error{display:block;background:#fff0ed;color:#9d3423;border:1px solid #f4c2b8}footer{text-align:center;font-size:12px;color:#8393a8;margin-top:25px}.note{font-size:12px;color:#6c7d91;margin-top:13px;line-height:1.6}
+</style>
+</head>
+<body><main class="wrap"><div class="eyebrow">AWS ACADEMY • SERVERLESS LAB</div><h1 class="heading">Nusantara Digital<br>Layanan IT</h1><p class="sub">Kirim laporan gangguan komputer melalui sistem serverless AWS. Laporan akan diteruskan ke antrean untuk diproses otomatis.</p><section class="card"><h2>Form Laporan Gangguan</h2><p class="hint">Gunakan data simulasi saat praktikum. Isi nama dan deskripsi masalah.</p><form id="reportForm"><div class="field"><label for="nama">Nama pelapor</label><input id="nama" name="nama" minlength="2" maxlength="100" required placeholder="Contoh: Ahmad Fauzi"></div><div class="field"><label for="masalah">Permasalahan</label><textarea id="masalah" name="masalah" minlength="5" maxlength="1000" required placeholder="Contoh: Komputer laboratorium nomor 5 tidak dapat menyala"></textarea></div><button id="sendButton" type="submit">Kirim Laporan</button><div id="message" class="message" role="status" aria-live="polite"></div></form><div class="note">Halaman ini merupakan aplikasi praktik. Jangan memasukkan informasi rahasia atau data pribadi nyata.</div></section><footer>Nusantara Digital • S3 → API Gateway → Lambda → SQS → Lambda → SNS</footer></main>
+<script>
+'use strict';
+// LANGKAH WAJIB: ganti URL berikut dengan endpoint API Gateway masing-masing peserta.
+const API_URL = ' ';
+const form=document.getElementById('reportForm');
+const button=document.getElementById('sendButton');
+const message=document.getElementById('message');
+function show(text,ok){message.className='message '+(ok?'success':'error');message.textContent=text;}
+form.addEventListener('submit',async function(ev){
+ ev.preventDefault();
+ const nama=document.getElementById('nama').value.trim();
+ const masalah=document.getElementById('masalah').value.trim();
+ if(!nama || !masalah){show('Nama dan permasalahan wajib diisi.',false);return;}
+ button.disabled=true;button.textContent='Mengirim laporan...';message.className='message';
+ try{
+  const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nama,masalah})});
+  const payload=await res.json();
+  if(!res.ok || payload.status!=='DITERIMA')throw new Error(payload.pesan||'API belum menerima laporan.');
+  show('Laporan diterima! Nomor tiket: '+payload.tiket+'. Pesan telah masuk antrean SQS.',true);
+  form.reset();
+ }catch(err){show('Laporan belum berhasil dikirim: '+err.message,false);}
+ finally{button.disabled=false;button.textContent='Kirim Laporan';}
+});
+</script></body></html>
